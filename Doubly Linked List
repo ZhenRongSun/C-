@@ -1,0 +1,634 @@
+#ifndef _BAG_INTERFACE
+#define _BAG_INTERFACE
+
+#include <vector>
+
+using namespace std;
+
+template<class ItemType>
+class BagInterface
+{
+public:
+//Gets the current number of entries in this bag.
+//return The integer number of entries currently in the bag.
+virtual int getCurrentSize()=0;
+virtual bool isEmpty()=0;
+
+//Adds a new entry to this bag.
+//If successful, newEntry is stored in the bag and the count of items in the bag has increased by 1.
+//newEntry The object to be added as a new entry. @return True if addition was successful, or false if not.
+virtual bool add(ItemType& newEntry)=0;
+    
+//Removes one occurrence of a given entry from this bag, if possible.
+// If successful, anEntry has been removed from the bag and the count of items in the bag has decreased by 1.
+//anEntry The entry to be removed.
+// True if removal was successful, or false if not.
+virtual bool remove(ItemType& anEntry)=0;
+    
+//Removes all entries from this bag.
+//Bag contains no items, and the count of items is 0.
+virtual void clear()=0;
+    
+//Counts the number of times a given entry appears in bag. @param anEntry The entry to be counted.
+//The number of times anEntry appears in the bag.
+virtual int getFrequencyOf(ItemType& anEntry)=0;
+    
+//Tests whether this bag contains a given entry.
+//anEntry The entry to locate.
+//True if bag contains anEntry, or false otherwise.
+virtual bool contains(ItemType& anEntry)=0;
+    
+//Empties and then fills a given vector with all entries that are in this bag.
+//A vector containing all the entries in the bag.
+vector<ItemType> toVector();
+}; // end BagInterface
+
+#endif /* _BAG_INTERFACE_h */
+
+
+
+
+
+
+
+#ifndef Node_h
+#define Node_h
+
+using namespace std;
+
+template<class ItemType>
+class Node
+{
+private:
+    ItemType item;
+    Node<ItemType>* next;
+    Node<ItemType>* previous;
+public:
+    Node ();
+    Node (const ItemType& anItem);
+    Node (const ItemType& anItem,Node<ItemType>* previousNodePtr, Node<ItemType >* nextNodePtr);
+    virtual ~Node();
+    void setItem (const ItemType& anItem);
+    void setNext (Node<ItemType>* nextNodePtr);
+    void setPrevious (Node<ItemType>* previousNodePtr);
+    ItemType getItem ();
+    Node<ItemType>* getNext ();
+    Node<ItemType>* getPrevious ();
+};
+
+
+template<class ItemType>
+Node<ItemType> :: Node()
+{
+    item=NULL;
+    next=NULL;
+    previous=NULL;
+} // default constructor
+
+
+template<class ItemType>
+Node<ItemType> :: Node (const ItemType& anItem)
+{
+    item=anItem;
+    next=NULL;
+    previous=NULL;
+} // constructor 2
+
+
+template<class ItemType>
+Node<ItemType> :: Node (const ItemType& anItem, Node<ItemType>* previousNodePtr, Node<ItemType>* nextNodePtr)
+{
+    item=anItem;
+    next=nextNodePtr;
+    previous=previousNodePtr;
+} // constructor 3
+
+
+template<class ItemType>
+Node<ItemType>:: ~Node()
+{
+    cout<<"The item \""<<item<<"\" has been remove!"<<endl;
+} //destructor
+
+
+template<class ItemType>
+void Node<ItemType> :: setItem(const ItemType& anItem)
+{
+    item=anItem;
+} // end setItem
+
+
+template<class ItemType>
+void Node<ItemType> :: setNext(Node<ItemType>* nextNodePtr)
+{
+    next=nextNodePtr;
+} // end setNext
+
+
+template<class ItemType>
+void Node<ItemType> :: setPrevious(Node<ItemType>* previousNodePtr)
+{
+    previous=previousNodePtr;
+} // end setPrevious
+
+
+template<class ItemType>
+ItemType Node<ItemType> :: getItem()
+{
+    return item;
+} // end getItem
+
+
+template<class ItemType>
+Node<ItemType>* Node<ItemType> :: getNext ()
+{
+    return next;
+} // end getNext
+
+
+template<class ItemType>
+Node<ItemType>* Node<ItemType> :: getPrevious ()
+{
+    return previous;
+} // end getPrevious
+
+#endif /* Node_h */
+
+
+
+
+
+
+
+#ifndef LinkedBag_h
+#define LinkedBag_h
+
+
+#endif /* LinkedBag_h */
+
+#include "Node.h"
+#include "BagInterface.h"
+
+template<class ItemType>
+class LinkedBag: public BagInterface<ItemType>
+{
+private:
+    int numberOfItemInTheBag;
+    Node<ItemType>* headPtr;
+    Node<ItemType>* tailPtr;
+    Node<ItemType>* getPointerTo(ItemType& target);
+public:
+    LinkedBag();
+    LinkedBag(LinkedBag<ItemType>* aBag);
+    ~LinkedBag();
+    int getCurrentSize();
+    bool isEmpty();
+    bool add(ItemType& newItem);
+    bool remove(ItemType& anEntry);
+    void clear();
+    bool contains(ItemType& targetItem);
+    int getFrequencyOf(ItemType& anEntry);
+    vector<ItemType> toVector();
+    //void checkList();
+};
+
+
+template<class ItemType>
+LinkedBag<ItemType>:: LinkedBag()
+{
+    numberOfItemInTheBag=0;
+    headPtr=NULL;
+    tailPtr=NULL;
+    cout << "The initial bag is empty." << endl<<endl; // initial the bag.
+} // default constructor
+
+
+template<class ItemType>
+LinkedBag<ItemType>::LinkedBag(LinkedBag<ItemType>* aBag)
+{
+    numberOfItemInTheBag=aBag->getCurrentSize();
+    Node<ItemType>* origChainHeadPtr=aBag->headPtr;
+    if(origChainHeadPtr==NULL)
+    {
+        headPtr=NULL;
+        tailPtr=NULL;
+    }
+    else
+    {
+        Node<ItemType>* newNodeOnTheChain=new Node<ItemType>(origChainHeadPtr->getItem());
+        headPtr=newNodeOnTheChain;
+        tailPtr=newNodeOnTheChain;
+        newNodeOnTheChain->setPrevious(headPtr);
+        for(int counter=1;counter<numberOfItemInTheBag;counter++)
+        {
+            origChainHeadPtr=origChainHeadPtr->getNext();
+            Node<ItemType>* newNodeOnTheChain=new Node<ItemType>(origChainHeadPtr->getItem(),tailPtr,NULL);
+            tailPtr->setNext(newNodeOnTheChain);
+            tailPtr=newNodeOnTheChain;
+        }
+    }
+} // deep copy constructor
+
+
+template<class ItemType>
+LinkedBag<ItemType>::~LinkedBag()
+{
+    clear();
+    cout<<"The bag is empty now"<<endl;
+} //destructor
+
+
+/*
+    head pointer always points to the first node on the list;
+    however, the tail pointer always moves, and we use it to perform
+    add function. If the list is empty, it needs a newNode that is pointed
+    by both head and tail pointer. After the list has more than one node/item,
+    the newNode previous pointer points back to whatever tail pointer pointing
+    to, than the pointer pointed by tail pointer sets its next to the newNode; Finally,
+    moving the tail pointer to the newNode and increasing the number of item in the list.
+ */
+template<class ItemType>
+bool LinkedBag<ItemType>::add(ItemType& newItem)
+{
+    if(numberOfItemInTheBag==0)
+    {
+        Node<ItemType>*newItemsNode=new Node<ItemType>(newItem);
+        newItemsNode->setItem(newItem);
+        headPtr=newItemsNode;
+        tailPtr=newItemsNode;
+        numberOfItemInTheBag++;
+    }
+    else
+    {
+        Node<ItemType>*newItemsNode=new Node<ItemType>(newItem,tailPtr,NULL);
+        tailPtr->setNext(newItemsNode);
+        tailPtr=newItemsNode;
+        numberOfItemInTheBag++;
+    }
+    return true;
+} // end add
+
+
+template<class ItemType>
+Node<ItemType>* LinkedBag<ItemType>:: getPointerTo(ItemType& target)
+{
+    bool foundTheItem=false;
+    Node<ItemType>* currentPointerPosition=headPtr;
+    while(foundTheItem!=true && currentPointerPosition!=NULL)
+    {
+        if(currentPointerPosition->getItem()==target)
+            foundTheItem=true;
+        else
+            currentPointerPosition=currentPointerPosition->getNext();
+    }
+    return currentPointerPosition;
+} // end getPointerTo
+
+
+/*
+    remove function is first check if the number of item is 0,
+    than to check where the target item is located in the node on
+    the list. There is three possibility, 1)on the head node,
+                                          2)on the tail node,
+                                          3)between the head and tail node.
+ */
+template<class ItemType>
+bool LinkedBag<ItemType>::remove(ItemType& itemAtTheNode)
+{
+    Node<ItemType>* curPointerPosition= getPointerTo(itemAtTheNode);
+    if(curPointerPosition!=NULL)
+    {
+        if(curPointerPosition==headPtr)
+        {
+            headPtr=curPointerPosition->getNext();
+            headPtr->setPrevious(headPtr);
+            curPointerPosition->setNext(NULL);
+        }
+        else if(curPointerPosition==tailPtr)
+        {
+            tailPtr=(curPointerPosition->getPrevious());
+            tailPtr->setNext(NULL);
+            curPointerPosition->setPrevious(NULL);
+        }
+        else
+        {
+            curPointerPosition->getPrevious()->setNext(curPointerPosition->getNext());
+            curPointerPosition->getNext()->setPrevious(curPointerPosition->getPrevious());
+            curPointerPosition->setPrevious(NULL);
+            curPointerPosition->setNext(NULL);
+        }
+        delete curPointerPosition;
+        numberOfItemInTheBag--;
+        return true;
+    }
+    return false;
+} // end remove
+
+
+/*
+    From the tail of the list to delete the node one by one
+ */
+template<class ItemType>
+void LinkedBag<ItemType>::clear()
+{
+    while(numberOfItemInTheBag!=1)
+    {
+        tailPtr=tailPtr->getPrevious();
+        delete tailPtr->getNext();
+        tailPtr->setNext(NULL);
+        numberOfItemInTheBag--;
+    }
+    delete tailPtr;
+    numberOfItemInTheBag--;
+} // end clear
+
+
+template<class ItemType>
+int LinkedBag<ItemType>::getFrequencyOf(ItemType& anEntry)
+{
+    int numberOfFrequency=0;
+    Node<ItemType>* curPosition=headPtr;
+    while(curPosition!=NULL)
+    {
+        if(curPosition->getItem()==anEntry)
+            numberOfFrequency++;
+        
+        curPosition=curPosition->getNext();
+    }
+    return numberOfFrequency;
+} // end getFrequencyOf
+
+
+template<class ItemType>
+int LinkedBag<ItemType>::getCurrentSize()
+{
+    return numberOfItemInTheBag;
+} // end getCurrentSize
+
+
+template<class ItemType>
+bool LinkedBag<ItemType>::isEmpty()
+{
+    if(numberOfItemInTheBag==0)
+        return true;
+    else
+        return false;
+} // end isEmpty
+
+
+template<class ItemType>
+vector<ItemType> LinkedBag<ItemType>::toVector()
+{
+    vector<ItemType> bagContents;
+    Node<ItemType>* curPtr = headPtr;
+    int counter=0;
+    while(curPtr != NULL && counter<numberOfItemInTheBag)
+    {
+        bagContents.push_back(curPtr->getItem());
+        curPtr = curPtr->getNext();
+        counter++;
+    }
+    return bagContents;
+} // end toVector
+
+
+template<class ItemType>
+bool LinkedBag<ItemType>::contains(ItemType& targetItem)
+{
+    return (getPointerTo(targetItem) != NULL);
+} // end contains
+
+
+/*
+Debug class function:
+template<class ItemType>
+void LinkedBag<ItemType>::checkList()
+{
+    Node<ItemType>* curPtr = headPtr;
+    int counter = 0;
+    while(counter< numberOfItemInTheBag)
+    {
+        cout<<curPtr->getItem()<<" ";
+        curPtr = curPtr->getNext();
+        counter++;
+    } // end while
+} // end
+*/
+
+
+
+
+
+#include <iostream>
+#include "Node.h"
+#include "BagInterface.h"
+#include "LinkedBag.h"
+
+/*
+    displayBag item in the bag, and use the vector to store the item, then by go through the vector, we can see the content in the bag.
+ */
+void displayBag(LinkedBag<string>* bagPtr)
+{
+    cout << "The bag contains " << bagPtr->getCurrentSize() << " items:" << endl;
+    vector<string> bagItems;
+    bagItems=bagPtr->toVector();
+    for (int i = 0; i < bagItems.size(); i++)
+    {
+        cout << bagItems[i] << " ";
+    } // end for
+    cout << endl;
+} // end displayBag
+
+
+
+/*
+    Test the add method, and print it result out.
+ */
+void bagAddTester(LinkedBag<string>* bagPtr,string newItem)
+{
+    cout<<"We try to add \""<<newItem<<"\" into the bag\n";
+    bagPtr->add(newItem);
+    cout<<"Right now the new item \""<<newItem<<"\" has been added to the bag.\n";
+    displayBag(bagPtr);
+} // end bagAddTester
+
+
+/*
+    Remove tester is used to test if the remove function run correct or not.
+ */
+void bagRemoveTester(LinkedBag<string>* bagPtr,string itemNeededToRemove)
+{
+    cout<<"We try to remove \""<<itemNeededToRemove<<"\" from the bag\n";
+    bagPtr->remove(itemNeededToRemove);
+    displayBag(bagPtr);
+} // end bagRemoveTester
+
+
+/*
+    Frequency test of the item means we check how many a specific item is in the bag.
+ */
+void bagFrequencyTester(LinkedBag<string>* bagPtr, string findTheFrequencyOfthisItem)
+{
+    cout<<"We try to find the frequency of \""<<findTheFrequencyOfthisItem<<"\" in the bag\n";
+    cout<<"The bag has "<<bagPtr->getFrequencyOf(findTheFrequencyOfthisItem)<<" of \""<<findTheFrequencyOfthisItem<<"\"";
+} // end bagFrequencyTester
+
+
+/*
+    An initial test of the bag. For example, whether the isEmpty, add item and getCurrentSize funcition is correctly ran.
+ */
+void bagTester(LinkedBag<string>* bagPtr)
+{
+    cout << "isEmpty: returns " << bagPtr->isEmpty() << "; should be 1 (true)" << endl;
+    string items[] = {"one", "two", "three", "four", "five", "one"};
+    cout << "Add 6 items to the bag: " << endl;
+    for (int i = 0; i < 6; i++)
+    {
+        bagPtr->add(items[i]);
+    } // end for
+    displayBag(bagPtr);
+    cout<<"isEmpty: returns "<<bagPtr->isEmpty()<<"; should be 0 (false)"<<endl;
+    cout<<"getCurrentSize returns : "<< bagPtr->getCurrentSize()<<"; should be 6"<<endl<<endl;
+} //end bagTester
+
+
+
+
+
+
+int main()
+{
+    
+    LinkedBag<string>* bagPtr = new LinkedBag<string>;
+    // create a LinkedBag object pointer named bagPtr, it will call the default constructor of the class
+    
+    bagTester(bagPtr); // call bagTester function
+    
+    string newItemToTheBag="ZPSLSZRSZRLZPS";
+    bagAddTester(bagPtr, newItemToTheBag); // call bagAddTester function
+    cout<<endl;
+    newItemToTheBag="one";
+    bagAddTester(bagPtr, newItemToTheBag); // call bagAddTester function
+    cout<<endl;
+    newItemToTheBag="ABCDEFG";
+    bagAddTester(bagPtr, newItemToTheBag); // call bagAddTester function
+    cout<<endl;
+    
+    string itemNeededToRemove="five";
+    bagRemoveTester(bagPtr, itemNeededToRemove); // call bagRemoveTester function
+    cout<<endl;
+    itemNeededToRemove="ABCDEFG";
+    bagRemoveTester(bagPtr, itemNeededToRemove); // call bagRemoveTester function
+    cout<<endl;
+    itemNeededToRemove="one";
+    bagRemoveTester(bagPtr, itemNeededToRemove); // call bagRemoveTester function
+    cout<<endl;
+    
+    string findTheFrequencyOfthisItem="one";
+    bagFrequencyTester(bagPtr,findTheFrequencyOfthisItem); // call bagFrequencyTester function
+    cout<<endl;
+    findTheFrequencyOfthisItem="two";
+    bagFrequencyTester(bagPtr,findTheFrequencyOfthisItem); // call bagFrequencyTester function
+    cout<<endl;
+    findTheFrequencyOfthisItem="QQQ";
+    bagFrequencyTester(bagPtr,findTheFrequencyOfthisItem); // call bagFrequencyTester function
+    cout<<endl;
+    
+    cout<<endl<<"Let's deep copy the bag using the original bag.\n";
+    LinkedBag<string>* bagCopyPtr=new LinkedBag<string>(bagPtr); // deep copy the current bag to another bag
+    displayBag(bagCopyPtr); // call displayBag to check if it copies correctly
+    
+    cout<<endl<<"Right now, we try to delete the bag,"<<endl<<"but we have to remove the item first: "<<endl<<endl;
+    
+    delete bagPtr; // call destructors
+    bagPtr = NULL; // set the bagPtr pointer to NULL
+    cout<<"\nWe already delete the original bag now.\nLet's delete the copy bag!"<<endl<<endl;
+    
+    delete bagCopyPtr; // call destructors
+    bagCopyPtr = NULL; // set the bagPtr pointer to NULL
+    
+    cout << "\nAll done!" << endl;
+    
+    return 0;
+    
+  
+}
+
+/*
+ Output result:
+ 
+ The initial bag is empty.
+
+ isEmpty: returns 1; should be 1 (true)
+ Add 6 items to the bag:
+ The bag contains 6 items:
+ one two three four five one
+ isEmpty: returns 0; should be 0 (false)
+ getCurrentSize returns : 6; should be 6
+
+ We try to add "ZPSLSZRSZRLZPS" into the bag
+ Right now the new item "ZPSLSZRSZRLZPS" has been added to the bag.
+ The bag contains 7 items:
+ one two three four five one ZPSLSZRSZRLZPS
+
+ We try to add "one" into the bag
+ Right now the new item "one" has been added to the bag.
+ The bag contains 8 items:
+ one two three four five one ZPSLSZRSZRLZPS one
+
+ We try to add "ABCDEFG" into the bag
+ Right now the new item "ABCDEFG" has been added to the bag.
+ The bag contains 9 items:
+ one two three four five one ZPSLSZRSZRLZPS one ABCDEFG
+
+ We try to remove "five" from the bag
+ The item "five" has been remove!
+ The bag contains 8 items:
+ one two three four one ZPSLSZRSZRLZPS one ABCDEFG
+
+ We try to remove "ABCDEFG" from the bag
+ The item "ABCDEFG" has been remove!
+ The bag contains 7 items:
+ one two three four one ZPSLSZRSZRLZPS one
+
+ We try to remove "one" from the bag
+ The item "one" has been remove!
+ The bag contains 6 items:
+ two three four one ZPSLSZRSZRLZPS one
+
+ We try to find the frequency of "one" in the bag
+ The bag has 2 of "one"
+ We try to find the frequency of "two" in the bag
+ The bag has 1 of "two"
+ We try to find the frequency of "QQQ" in the bag
+ The bag has 0 of "QQQ"
+
+ Let's deep copy the bag using the original bag.
+ The bag contains 6 items:
+ two three four one ZPSLSZRSZRLZPS one
+
+ Right now, we try to delete the bag,
+ but we have to remove the item first:
+
+ The item "one" has been remove!
+ The item "ZPSLSZRSZRLZPS" has been remove!
+ The item "one" has been remove!
+ The item "four" has been remove!
+ The item "three" has been remove!
+ The item "two" has been remove!
+ The bag is empty now
+
+ We already delete the original bag now.
+ Let's delete the copy bag!
+
+ The item "one" has been remove!
+ The item "ZPSLSZRSZRLZPS" has been remove!
+ The item "one" has been remove!
+ The item "four" has been remove!
+ The item "three" has been remove!
+ The item "two" has been remove!
+ The bag is empty now
+
+ All done!
+ Program ended with exit code: 0
+ */
